@@ -17,11 +17,11 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SignInPayload } from "./SignIn.types";
 import axios from "../../api/axios";
+import { useLogin } from "../../api/login/useLogin";
 
 export const SignIn = () => {
   const [isRememberMeChecked, setIsRememberMeChecked] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>();
+  const { errorMessage, isLoading, onMutate } = useLogin();
 
   const schema = yup.object().shape({
     username: yup
@@ -39,19 +39,6 @@ export const SignIn = () => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = useCallback(async (payload: SignInPayload) => {
-    try {
-      setIsLoading(true);
-      setErrorMessage("");
-      // zmiana z /app/auth/logindupa na /app/auth/login
-      await axios.post("/app/auth/login", payload);
-    } catch (error) {
-      setErrorMessage(`Something went wrong. Please try again.`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   return (
     <CenteredLayout>
       <Paper sx={styles.container}>
@@ -61,7 +48,7 @@ export const SignIn = () => {
         <Box
           component="form"
           sx={styles.form}
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onMutate)}
         >
           <TextField
             variant="standard"

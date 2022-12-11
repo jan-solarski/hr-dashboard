@@ -1,22 +1,26 @@
-import { useCallback, useState } from "react";
+import { useCallback, useReducer, useState } from "react";
 import { SignInPayload } from "../../views/signIn/SignIn.types";
 import axios from "../axios";
+import { defaultLoginState, loginReducer } from "./loginReducer";
 
 export const useLogin = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>();
-
+  const [loginState, dispatchLoginAction] = useReducer(
+    loginReducer,
+    defaultLoginState
+  );
   const onMutate = useCallback(async (payload: SignInPayload) => {
     try {
-      setIsLoading(true);
-      setErrorMessage("");
+      dispatchLoginAction({ type: "init" });
       await axios.post("/app/auth/login", payload);
     } catch (error) {
-      setErrorMessage(`Something went wrong. Please try again.`);
+      dispatchLoginAction({
+        type: "error",
+        payload: "Something went wrong. Try again",
+      });
     } finally {
-      setIsLoading(false);
+      dispatchLoginAction({ type: "finish" });
     }
   }, []);
 
-  return { errorMessage, isLoading, onMutate };
+  return { onMutate, loginState };
 };

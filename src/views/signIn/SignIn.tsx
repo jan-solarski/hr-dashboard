@@ -21,7 +21,7 @@ import { useLogin } from "../../api/login/useLogin";
 
 export const SignIn = () => {
   const [isRememberMeChecked, setIsRememberMeChecked] = useState(false);
-  const { errorMessage, isLoading, onMutate } = useLogin();
+  const { loginState, onMutate } = useLogin();
 
   const schema = yup.object().shape({
     username: yup
@@ -79,10 +79,14 @@ export const SignIn = () => {
             />
           </FormGroup>
 
-          {errorMessage && (
-            <Typography color="error">{errorMessage}</Typography>
+          {loginState.errorMessage && (
+            <Typography color="error">{loginState.errorMessage}</Typography>
           )}
-          <Button type="submit" variant="contained" disabled={isLoading}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loginState.isLoading}
+          >
             Sign In
           </Button>
           <Typography>

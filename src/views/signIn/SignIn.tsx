@@ -17,11 +17,14 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SignInPayload } from "./SignIn.types";
 import axios from "../../api/axios";
-import { useLogin } from "../../api/login/useLogin";
+import { useMutation } from "../../api/useMutation/useMutation";
 
 export const SignIn = () => {
   const [isRememberMeChecked, setIsRememberMeChecked] = useState(false);
-  const { loginState, onMutate } = useLogin();
+  const { state, onMutate } = useMutation({
+    mutateFn: (payload: SignInPayload) =>
+      axios.post("/app/auth/login", payload),
+  });
 
   const schema = yup.object().shape({
     username: yup
@@ -79,14 +82,10 @@ export const SignIn = () => {
             />
           </FormGroup>
 
-          {loginState.errorMessage && (
-            <Typography color="error">{loginState.errorMessage}</Typography>
+          {state.errorMessage && (
+            <Typography color="error">{state.errorMessage}</Typography>
           )}
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={loginState.isLoading}
-          >
+          <Button type="submit" variant="contained" disabled={state.isLoading}>
             Sign In
           </Button>
           <Typography>

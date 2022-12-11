@@ -3,16 +3,14 @@ import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import * as styles from "./SignUp.styles";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useCallback, useState } from "react";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { SignUpPayload } from "./SignUp.types";
 import axios from "../../api/axios";
+import { useMutation } from "../../api/useMutation/useMutation";
+import { useCallback } from "react";
 
 export const SignUp = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>();
-
   const schema = yup.object().shape({
     firstname: yup.string().required("This field cannot be empty"),
     lastname: yup.string().required("This field cannot be empty"),
@@ -35,17 +33,18 @@ export const SignUp = () => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = useCallback(async (payload: SignUpPayload) => {
-    try {
-      setIsLoading(true);
-      setErrorMessage("");
-      await axios.post("/app/auth/register", payload);
-    } catch (error) {
-      setErrorMessage(`Something went wrong. Please try again.`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { state, onMutate } = useMutation({
+    mutateFn: (payload: Omit<SignUpPayload, "passwordRepeat">) =>
+      axios.post("/app/auth/register", payload),
+  });
+
+  const handleMutate = useCallback(
+    async (payload: SignUpPayload) => {
+      const { passwordRepeat, ...validApiPayload } = payload;
+      onMutate(validApiPayload);
+    },
+    [onMutate]
+  );
 
   return (
     <CenteredLayout>
@@ -56,7 +55,7 @@ export const SignUp = () => {
         <Box
           component="form"
           sx={styles.form}
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(handleMutate)}
         >
           <TextField
             variant="standard"
@@ -101,10 +100,10 @@ export const SignUp = () => {
             fullWidth
           ></TextField>
 
-          {errorMessage && (
-            <Typography color="error">{errorMessage}</Typography>
+          {state.errorMessage && (
+            <Typography color="error">{state.errorMessage}</Typography>
           )}
-          <Button type="submit" variant="contained" disabled={isLoading}>
+          <Button type="submit" variant="contained" disabled={state.isLoading}>
             Sign Up
           </Button>
           <Typography>

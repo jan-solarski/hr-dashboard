@@ -4,7 +4,7 @@ import { defaultState, mutationReducer } from "./mutationReducer";
 import { UseMutationProps } from "./useMutation.types";
 import { isAxiosError } from "../axios";
 
-export const useMutation = <T extends {}>({
+export const useMutation = <T extends unknown>({
   mutateFn,
 }: UseMutationProps<T>) => {
   const [state, dispatch] = useReducer(mutationReducer, defaultState);
